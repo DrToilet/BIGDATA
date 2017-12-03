@@ -117,7 +117,17 @@ if __name__ == "__main__":
     # TODO: Print the vocabulary size (to STDOUT) after filtering out stopwords and very rare tokens
     # Hint: Look at the parameters of CountVectorizer
     # [FIX ME!] Write code below
+   
+    #NOT WORKING!!
 
+    <!-- voc=train_data.select(train_data.words_filtered)
+    voc2=voc.rdd.flatMap(lambda a: [(w,1) for w in a.voc]).distinct().count()
+        
+    voc2=voc.flatMap(lambda a: [(w,1) for w in a.voc]).distinct().count()
+    
+    voc2=voc.map(lambda word: (word, 1)).reduceByKey(lambda a, b: a + b)
+     -->
+        
     # Create a TF-IDF representation of the data
     idf = IDF(inputCol='BoW', outputCol='TFIDF')
     idf_model = idf.fit(train_data)
@@ -149,18 +159,48 @@ if __name__ == "__main__":
 
     # Evaluate model using the AUC metric
     auc_dt_default_dev = evaluator.evaluate(dt_predictions_default_dev, {evaluator.metricName: 'areaUnderROC'})
-
+    # AUC: 0.4614814814814815
     # Print result to standard output
     print('Decision Tree, Default Parameters, Development Set, AUC: ' + str(auc_dt_default_dev))
 
     # TODO: Check for signs of overfitting (by evaluating the model on the training set)
     
-      # [FIX ME!] Write code below
+    # If train performances are better than test performances it overfit
+    
+    # [FIX ME!] Write code below
 
+    auc_dt_default_train = evaluator.evaluate(dt_model_default.transform(train_tfidf), {evaluator.metricName: 'areaUnderROC'})
+    
+    # AUC: 0.3521034688203363
+    
+    # 0.46 > 0.35 => it does not overfit
+    
     # TODO: Tune the decision tree model by changing one of its hyperparameters
     # Build and evalute decision trees with the following maxDepth values: 3 and 4.
     # [FIX ME!] Write code below
 
+    dt_classifier_3 = DecisionTreeClassifier(labelCol = 'label', featuresCol = 'TFIDF', maxDepth=3)
+    dt_classifier_4 = DecisionTreeClassifier(labelCol = 'label', featuresCol = 'TFIDF', maxDepth=4)
+    
+    #evaluating dt_classifier_3
+    dt_pipeline_3 = Pipeline(stages=[label_indexer, dt_classifier_3])
+    dt_model_3 = dt_pipeline_3.fit(train_tfidf)
+    dt_predictions_3_dev = dt_model_3.transform(dev_tfidf)
+    auc_dt_3_dev = evaluator.evaluate(dt_predictions_3_dev, {evaluator.metricName: 'areaUnderROC'})
+    print('Decision Tree, Param = 3, Development Set, AUC: ' + str(auc_dt_3_dev))
+    # AUC: 0.4707407407407407
+    
+    #evaluating dt_classifier_4
+    dt_pipeline_4 = Pipeline(stages=[label_indexer, dt_classifier_4])
+    dt_model_4 = dt_pipeline_4.fit(train_tfidf)
+    dt_predictions_4_dev = dt_model_4.transform(dev_tfidf)
+    auc_dt_4_dev = evaluator.evaluate(dt_predictions_4_dev, {evaluator.metricName: 'areaUnderROC'})
+    print('Decision Tree, Param = 4, Development Set, AUC: ' + str(auc_dt_4_dev))
+    # AUC: 0.4629012345679013
+    
+    # Decision tree with MaxDepth = 3 is better than 4.
+    
+    
     # Train a random forest with default parameters (including numTrees=20)
     rf_classifier_default = RandomForestClassifier(labelCol = 'label', featuresCol = 'TFIDF', numTrees=20)
 
@@ -179,13 +219,30 @@ if __name__ == "__main__":
     # Print result to standard output
     print('Random Forest, Default Parameters, Development Set, AUC:' + str(auc_rf_default_dev))
 
+    # AUC:0.6724691358024691
+    
     # TODO: Check for signs of overfitting (by evaluating the model on the training set)
     # [FIX ME!] Write code below
 
+    auc_rf_default_train = evaluator.evaluate(rf_model_default.transform(train_tfidf), {evaluator.metricName: 'areaUnderROC'})
+    print('Random Forest, Default Parameters, Training Set, AUC:' + str(auc_rf_default_train))
+    
+    # AUC:0.9264365152919369
+    # 0.92 >> 0.67. It clearly overfits.
+    
     # TODO: Tune the random forest model by changing one of its hyperparameters
     # Build and evalute (on the dev set) another random forest with the following numTrees value: 100.
     # [FIX ME!] Write code below
 
+    rf_classifier_100 = RandomForestClassifier(labelCol = 'label', featuresCol = 'TFIDF', numTrees=100)
+    rf_pipeline_100 = Pipeline(stages=[label_indexer, rf_classifier_100])
+    rf_model_100 = rf_pipeline_100.fit(train_tfidf)
+    rf_predictions_100_dev = rf_model_100.transform(dev_tfidf)
+    auc_rf_100_dev = evaluator.evaluate(rf_predictions_100_dev, {evaluator.metricName: 'areaUnderROC'})
+    print('Random Forest, Default Parameters, Development Set, AUC:' + str(auc_rf_100_dev))
+    
+    # AUC:0.7117283950617285
+    
     # ----- PART IV: MODEL EVALUATION -----
 
     # Create a new dataset combining the train and dev sets
@@ -194,4 +251,14 @@ if __name__ == "__main__":
     # TODO: Evalute the best model on the test set
     # Build a new model from the concatenation of the train and dev sets in order to better utilize the data
     # [FIX ME!]
-
+    
+    rf_classifier_100 = RandomForestClassifier(labelCol = 'label', featuresCol = 'TFIDF', numTrees=100)
+    rf_pipeline_100 = Pipeline(stages=[label_indexer, rf_classifier_100])
+    rf_model_100 = rf_pipeline_100.fit(traindev_tfidf)
+    rf_predictions_100_dev = rf_model_100.transform(test_tfidf)
+    auc_rf_100_dev = evaluator.evaluate(rf_predictions_100_dev, {evaluator.metricName: 'areaUnderROC'})
+    print('Random Forest, Default Parameters, Development Set, AUC:' + str(auc_rf_100_dev))
+    
+    # AUC:0.7483027407593664
+    # Performance is a little bit better than before (AUC: 0.71) because we used more data for the training phase. 
+    # In fact, the new dataset is the union between train and dev sets.
