@@ -22,7 +22,8 @@ if __name__ == "__main__":
     # Each file is read as a single record and returned in a key-value pair
     # The key is the path and the value is the content of each file
     reviews = sc.wholeTextFiles('hdfs://quickstart.cloudera:8020/user/cloudera/'+sys.argv[1]+'/*/*')
-
+    #reviews = sc.wholeTextFiles('hdfs://quickstart.cloudera:8020/user/cloudera/txt_sentoken/*/*')
+    
     # Create tuples: (class label, review text) - we ignore the file path
     # 1.0 for positive reviews
     # 0.0 for negative reviews
@@ -73,14 +74,34 @@ if __name__ == "__main__":
     dev_pos=dev.filter(dev.class_label == 1)
     dev_pos.count() #36
     
+    #class distribuition
+    #N_POS/TOTAL
+    train_dist = (train_pos.count()/train.count())*100
+    test_dist = (test_pos.count()/test.count())*100
+    dev_dist = (dev_pos.count()/dev.count())*100
+    
+    print('train distribution: '+str(train_dist)+' %') #0.1518
+    print('test distribution: '+str(test_dist)+' %') #0.1744
+    print('dev distribution: '+str(dev_dist)+' %') #0.1379
+    
     # TODO: Create a stopword list containing the 100 most frequent tokens in the training data
     # Hint: see below for how to convert a list of (word, frequency) tuples to a list of words
     # stopwords = [frequency_tuple[0] for frequency_tuple in list_top100_tokens]
     # [FIX ME!] Write code below
 
+    
+    words=train.select(train.words)
+    #This is the right one
+    words_count=words.map(lambda word: (word, 1)).reduceByKey(lambda a, b: a + b)
+    #words_count=words.rdd.flatMap(lambda a: [(w,1) for w in a.words]).reduceByKey(lambda a,b: a+b)
+    #words_count.collect()
+    words_count=sorted(words_count.collect(), key=lambda x: x[1], reverse=True)
+    words_count=words_count[:100]
+    
+    
     # TODO: Replace the [] in the stopWords parameter with the name of your created list
     # [FIX ME!] Modify code below
-    remover = StopWordsRemover(inputCol='words', outputCol='words_filtered', stopWords=[])
+    remover = StopWordsRemover(inputCol='words', outputCol='words_filtered', stopWords=words_count)
 
     # Remove stopwords from all three subsets
     train_filtered = remover.transform(train)
