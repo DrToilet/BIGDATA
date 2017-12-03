@@ -92,12 +92,10 @@ if __name__ == "__main__":
     
     words=train.select(train.words)
     #This is the right one
-    words_count=words.map(lambda word: (word, 1)).reduceByKey(lambda a, b: a + b)
-    #words_count=words.rdd.flatMap(lambda a: [(w,1) for w in a.words]).reduceByKey(lambda a,b: a+b)
-    #words_count.collect()
+    words_count=words.rdd.flatMap(lambda a: [(w,1) for w in a.words]).reduceByKey(lambda a,b: a+b)
     words_count=sorted(words_count.collect(), key=lambda x: x[1], reverse=True)
     words_count=words_count[:100]
-    
+    words_count = [frequency_tuple[0] for frequency_tuple in words_count]
     
     # TODO: Replace the [] in the stopWords parameter with the name of your created list
     # [FIX ME!] Modify code below
