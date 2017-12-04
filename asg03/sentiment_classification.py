@@ -89,10 +89,9 @@ if __name__ == "__main__":
     # stopwords = [frequency_tuple[0] for frequency_tuple in list_top100_tokens]
     # [FIX ME!] Write code below
 
-    
     words=train.select(train.words)
-    #This is the right one
-    words_count=words.rdd.flatMap(lambda a: [(w,1) for w in a.words]).reduceByKey(lambda a,b: a+b)
+    words_count=train.flatMap(lambda line: line[1].split(" ")).map(lambda word: (word, 1)).reduceByKey(lambda a, b: a + b)
+    
     words_count=sorted(words_count.collect(), key=lambda x: x[1], reverse=True)
     words_count=words_count[:100]
     words_count = [frequency_tuple[0] for frequency_tuple in words_count]
@@ -118,15 +117,8 @@ if __name__ == "__main__":
     # Hint: Look at the parameters of CountVectorizer
     # [FIX ME!] Write code below
    
-    #NOT WORKING!!
-
-    <!-- voc=train_data.select(train_data.words_filtered)
-    voc2=voc.rdd.flatMap(lambda a: [(w,1) for w in a.voc]).distinct().count()
-        
-    voc2=voc.flatMap(lambda a: [(w,1) for w in a.voc]).distinct().count()
+    len(cv_model.vocabulary)
     
-    voc2=voc.map(lambda word: (word, 1)).reduceByKey(lambda a, b: a + b)
-     -->
         
     # Create a TF-IDF representation of the data
     idf = IDF(inputCol='BoW', outputCol='TFIDF')
