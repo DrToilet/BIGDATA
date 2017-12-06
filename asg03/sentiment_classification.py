@@ -80,18 +80,16 @@ if __name__ == "__main__":
     test_dist = (test_pos.count()/test.count())*100
     dev_dist = (dev_pos.count()/dev.count())*100
     
-    print('train distribution: '+str(train_dist)+' %') #0.1518
-    print('test distribution: '+str(test_dist)+' %') #0.1744
-    print('dev distribution: '+str(dev_dist)+' %') #0.1379
+    print('train distribution: '+str(train_dist)+' %') # 15.182481751824817 %
+    print('test distribution: '+str(test_dist)+' %') # 17.4468085106383 %
+    print('dev distribution: '+str(dev_dist)+' %') # 13.793103448275861 %
     
     # TODO: Create a stopword list containing the 100 most frequent tokens in the training data
     # Hint: see below for how to convert a list of (word, frequency) tuples to a list of words
     # stopwords = [frequency_tuple[0] for frequency_tuple in list_top100_tokens]
     # [FIX ME!] Write code below
 
-    words=train.select(train.words)
     words_count=train.flatMap(lambda line: line[1].split(" ")).map(lambda word: (word, 1)).reduceByKey(lambda a, b: a + b)
-    
     words_count=sorted(words_count.collect(), key=lambda x: x[1], reverse=True)
     words_count=words_count[:100]
     words_count = [frequency_tuple[0] for frequency_tuple in words_count]
@@ -117,7 +115,7 @@ if __name__ == "__main__":
     # Hint: Look at the parameters of CountVectorizer
     # [FIX ME!] Write code below
    
-    len(cv_model.vocabulary)
+    len(cv_model.vocabulary) #14092
     
         
     # Create a TF-IDF representation of the data
@@ -151,7 +149,7 @@ if __name__ == "__main__":
 
     # Evaluate model using the AUC metric
     auc_dt_default_dev = evaluator.evaluate(dt_predictions_default_dev, {evaluator.metricName: 'areaUnderROC'})
-    # AUC: 0.4614814814814815
+    # AUC: 0.46111111111111114
     # Print result to standard output
     print('Decision Tree, Default Parameters, Development Set, AUC: ' + str(auc_dt_default_dev))
 
@@ -188,7 +186,7 @@ if __name__ == "__main__":
     dt_predictions_4_dev = dt_model_4.transform(dev_tfidf)
     auc_dt_4_dev = evaluator.evaluate(dt_predictions_4_dev, {evaluator.metricName: 'areaUnderROC'})
     print('Decision Tree, Param = 4, Development Set, AUC: ' + str(auc_dt_4_dev))
-    # AUC: 0.4629012345679013
+    # AUC: 0.46265432098765435
     
     # Decision tree with MaxDepth = 3 is better than 4.
     
@@ -211,7 +209,7 @@ if __name__ == "__main__":
     # Print result to standard output
     print('Random Forest, Default Parameters, Development Set, AUC:' + str(auc_rf_default_dev))
 
-    # AUC:0.6724691358024691
+    # AUC:0.5207407407407407
     
     # TODO: Check for signs of overfitting (by evaluating the model on the training set)
     # [FIX ME!] Write code below
@@ -219,8 +217,8 @@ if __name__ == "__main__":
     auc_rf_default_train = evaluator.evaluate(rf_model_default.transform(train_tfidf), {evaluator.metricName: 'areaUnderROC'})
     print('Random Forest, Default Parameters, Training Set, AUC:' + str(auc_rf_default_train))
     
-    # AUC:0.9264365152919369
-    # 0.92 >> 0.67. It clearly overfits.
+    # AUC:0.9393121938302659
+    # 0.93 >> 0.52. It clearly overfits.
     
     # TODO: Tune the random forest model by changing one of its hyperparameters
     # Build and evalute (on the dev set) another random forest with the following numTrees value: 100.
@@ -233,7 +231,7 @@ if __name__ == "__main__":
     auc_rf_100_dev = evaluator.evaluate(rf_predictions_100_dev, {evaluator.metricName: 'areaUnderROC'})
     print('Random Forest, Default Parameters, Development Set, AUC:' + str(auc_rf_100_dev))
     
-    # AUC:0.7117283950617285
+    # AUC:0.718148148148148
     
     # ----- PART IV: MODEL EVALUATION -----
 
@@ -251,6 +249,7 @@ if __name__ == "__main__":
     auc_rf_100_dev = evaluator.evaluate(rf_predictions_100_dev, {evaluator.metricName: 'areaUnderROC'})
     print('Random Forest, Default Parameters, Development Set, AUC:' + str(auc_rf_100_dev))
     
-    # AUC:0.7483027407593664
-    # Performance is a little bit better than before (AUC: 0.71) because we used more data for the training phase. 
+    # AUC:0.702665325622328
+    
+    # Performance is a little bit worst than before (AUC: 0.71) because we used more data for the training phase. 
     # In fact, the new dataset is the union between train and dev sets.
