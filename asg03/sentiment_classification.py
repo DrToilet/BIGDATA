@@ -247,9 +247,9 @@ if __name__ == "__main__":
     rf_model_100 = rf_pipeline_100.fit(traindev_tfidf)
     rf_predictions_100_dev = rf_model_100.transform(test_tfidf)
     auc_rf_100_dev = evaluator.evaluate(rf_predictions_100_dev, {evaluator.metricName: 'areaUnderROC'})
-    print('Random Forest, Default Parameters, Development Set, AUC:' + str(auc_rf_100_dev))
     
     # AUC:0.702665325622328
     
-    # Performance is a little bit worst than before (AUC: 0.71) because we used more data for the training phase. 
-    # In fact, the new dataset is the union between train and dev sets.
+    # Performances are a little bit different but we expected this because right now we evaluate it on another set
+    # and the initial training set was different too. In fact, we united the dev and training set for the training phase 
+    # and we used the test test for the test phase.
