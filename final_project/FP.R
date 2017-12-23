@@ -53,11 +53,4 @@ auc <- unlist(attr(performance(pred2, "auc"), "y.values"))
 print(auc)
 legend("bottomright", sprintf("%.3f",auc), title = "AUC")
 
-# SVM not working
-library("e1071")
-svm.model <- svm(formula = left ~ ., data = train.set, kernel = "radial", cost = 1, probability = TRUE)
-svm.pred <-predict(svm.model, newdata = test.set,probability = TRUE) 
-
-class.probs <- attr(svm.pred, "probabilities")
-pred2 <- prediction(class.probs[,2], test.set$left)
 
