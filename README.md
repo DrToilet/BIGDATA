@@ -12,4 +12,4 @@ This repo contains assignments, reports and the final project for the course of 
 
 ### Info:
 - [DSV department](http://dsv.su.se/en/) 
-- [Stockholm University] (http://www.su.se/english/)
+- [Stockholm University](http://www.su.se/english/)
